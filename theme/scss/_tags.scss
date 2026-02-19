@@ -1,0 +1,26 @@
+@use "variables" as *;
+
+.post-tags {
+  margin-top: 2.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid $color-rule-light;
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.tag {
+  font-family: $font-sans;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: $color-muted;
+  border: 1px solid $color-rule-light;
+  padding: 0.2rem 0.6rem;
+  border-radius: 2px;
+
+  &:hover {
+    border-color: $color-rule;
+    color: $color-ink;
+  }
+}

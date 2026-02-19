@@ -1,0 +1,134 @@
+@use "variables" as *;
+
+$nav-width: 14rem;
+$nav-breakpoint: 1280px;
+
+@mixin nav-list-styles {
+  h3 {
+    font-family: $font-heading;
+    font-size: 0.85rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: $color-muted;
+    margin-bottom: 0.75rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid $color-rule-light;
+  }
+
+  ol {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  li {
+    margin-bottom: 0.15rem;
+
+    a {
+      display: block;
+      padding: 0.3rem 0.4rem;
+      font-family: $font-heading;
+      font-size: 0.85rem;
+      line-height: 1.35;
+      color: $color-muted;
+      text-decoration: none;
+      border-radius: 2px;
+      transition: color 0.15s, background 0.15s;
+
+      &:hover {
+        color: $color-ink;
+        background: $color-highlight;
+      }
+
+      &.active {
+        color: $color-ink;
+        font-weight: 700;
+        background: $color-highlight;
+      }
+    }
+  }
+}
+
+// ── Desktop: sticky sidebar ──
+
+.post-nav-desktop {
+  display: none;
+
+  @media (min-width: $nav-breakpoint) {
+    display: block;
+    flex-shrink: 0;
+    width: $nav-width;
+    position: sticky;
+    top: 1.5rem;
+    align-self: flex-start;
+    padding: 1rem;
+    background: $color-paper;
+    @include nav-list-styles;
+  }
+}
+
+.index-layout {
+  display: block;
+
+  @media (min-width: $nav-breakpoint) {
+    display: flex;
+    gap: 2rem;
+    align-items: flex-start;
+
+    .post-list {
+      flex: 1;
+      min-width: 0;
+    }
+  }
+}
+
+// ── Mobile: hamburger + overlay ──
+
+.post-nav-toggle {
+  display: block;
+  position: fixed;
+  top: 0.75rem;
+  right: 0.75rem;
+  z-index: 501;
+  background: $color-paper;
+  border: 1px solid $color-rule-light;
+  border-radius: 2px;
+  padding: 0.4rem 0.6rem;
+  font-size: 1.2rem;
+  cursor: pointer;
+  color: $color-ink;
+  line-height: 1;
+
+  &:hover {
+    border-color: $color-rule;
+  }
+
+  @media (min-width: $nav-breakpoint) {
+    display: none;
+  }
+}
+
+.post-nav-mobile {
+  display: none;
+  position: fixed;
+  top: 0;
+  right: 0;
+  z-index: 500;
+  width: $nav-width;
+  height: 100vh;
+  overflow-y: auto;
+  padding: 3rem 1rem 1rem;
+  background: $color-paper;
+  border-left: 1px solid $color-rule-light;
+  box-shadow: -2px 0 12px rgba(0, 0, 0, 0.15);
+  @include nav-list-styles;
+
+  &.open {
+    display: block;
+  }
+
+  @media (min-width: $nav-breakpoint) {
+    display: none !important;
+  }
+}

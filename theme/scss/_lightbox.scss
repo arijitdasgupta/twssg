@@ -1,0 +1,32 @@
+@use "variables" as *;
+
+.lightbox-overlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.85);
+  z-index: 1000;
+  cursor: zoom-out;
+  align-items: center;
+  justify-content: center;
+
+  &.active {
+    display: flex;
+  }
+
+  img {
+    max-width: 92vw;
+    max-height: 92vh;
+    object-fit: contain;
+    border-radius: 2px;
+    box-shadow: 0 4px 40px rgba(0, 0, 0, 0.5);
+  }
+}
+
+.post-content img,
+.post-entry-content img {
+  cursor: zoom-in;
+}

@@ -1,0 +1,170 @@
+@use "variables" as *;
+
+.post {
+  margin: 2rem 0;
+
+  h1 {
+    font-family: $font-heading;
+    font-size: 2.75rem;
+    font-weight: 700;
+    line-height: 1.15;
+    margin-bottom: 0.5rem;
+    letter-spacing: -0.02em;
+  }
+
+  & > time {
+    font-family: $font-sans;
+    font-size: 0.7rem;
+    color: $color-muted;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    display: block;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid $color-rule-light;
+  }
+
+  .feature-image {
+    width: 100%;
+    height: auto;
+    border-radius: 2px;
+    margin-bottom: 2rem;
+  }
+}
+
+.post-content {
+  font-size: 1.05rem;
+  line-height: 1.8;
+
+  p {
+    margin-bottom: 1.25rem;
+  }
+
+  h2 {
+    font-size: 1.3rem;
+    font-weight: 700;
+    margin: 2.5rem 0 0.75rem;
+    padding-bottom: 0.3rem;
+    border-bottom: 1px solid $color-rule-light;
+  }
+
+  h3 {
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin: 2rem 0 0.5rem;
+    font-style: italic;
+  }
+
+  img {
+    width: 100%;
+    height: auto;
+    border-radius: 2px;
+    margin: 1.5rem 0;
+    display: block;
+  }
+
+  a {
+    color: $color-accent;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+
+    &:hover {
+      text-decoration-thickness: 2px;
+    }
+  }
+
+  blockquote {
+    border-left: 3px solid $color-rule;
+    padding: 0.5rem 0 0.5rem 1.25rem;
+    margin: 1.5rem 0;
+    font-style: italic;
+    color: $color-muted;
+
+    p {
+      margin-bottom: 0.5rem;
+    }
+  }
+
+  pre {
+    background: $color-highlight;
+    padding: 1rem;
+    border: 1px solid $color-rule-light;
+    border-radius: 2px;
+    overflow-x: auto;
+    margin: 1.5rem 0;
+    font-family: $font-mono;
+    font-size: 0.82rem;
+    line-height: 1.6;
+  }
+
+  code {
+    font-family: $font-mono;
+    font-size: 0.85em;
+    background: $color-highlight;
+    padding: 0.15em 0.35em;
+    border-radius: 2px;
+  }
+
+  pre code {
+    background: none;
+    padding: 0;
+  }
+
+  ul, ol {
+    margin: 1rem 0 1.25rem 1.5rem;
+
+    li {
+      margin-bottom: 0.4rem;
+    }
+  }
+
+  hr {
+    border: none;
+    border-top: 1px solid $color-rule-light;
+    margin: 2.5rem auto;
+    width: 40%;
+  }
+
+  figure {
+    margin: 1.5rem 0;
+
+    img {
+      width: 100%;
+    }
+
+    figcaption {
+      font-family: $font-sans;
+      font-size: 0.8rem;
+      color: $color-muted;
+      text-align: center;
+      margin-top: 0.5rem;
+      font-style: italic;
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .post h1 {
+    font-size: 1.4rem;
+  }
+
+  .post-content {
+    font-size: 1rem;
+  }
+}
+
+@media (min-width: $column-breakpoint) {
+  .post-content {
+    column-count: 2;
+    column-gap: 2.5rem;
+    column-rule: 1px solid $color-rule-light;
+
+    h2, h3, pre, blockquote {
+      column-span: all;
+    }
+
+    img, figure {
+      break-inside: avoid;
+    }
+  }
+}

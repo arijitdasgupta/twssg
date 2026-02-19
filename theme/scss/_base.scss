@@ -1,0 +1,87 @@
+@use "variables" as *;
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: $font-serif;
+  color: $color-ink;
+  background: $color-paper;
+  line-height: 1.8;
+  -webkit-font-smoothing: antialiased;
+}
+
+header {
+  border-bottom: 4px double $color-rule;
+  padding: 1.5rem 1rem 1rem;
+  text-align: center;
+
+  nav {
+    max-width: $column-width;
+    margin: 0 auto;
+  }
+
+  .site-title {
+    font-family: $font-heading;
+    font-size: 2rem;
+    font-weight: 700;
+    color: $color-ink;
+    text-decoration: none;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    display: block;
+
+    &:hover {
+      color: $color-accent;
+    }
+  }
+}
+
+main {
+  max-width: $column-width;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+footer {
+  max-width: $column-width;
+  margin: 4rem auto 0;
+  border-top: 2px solid $color-rule;
+  padding: 1.5rem 1rem;
+  text-align: center;
+  color: $color-muted;
+  font-family: $font-sans;
+  font-size: 0.75rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+@media (min-width: $column-breakpoint) {
+  main {
+    max-width: $wide-width;
+  }
+
+  header nav {
+    max-width: $wide-width;
+  }
+
+  footer {
+    max-width: $wide-width;
+  }
+}
+
+@media (min-width: 1280px) {
+  main {
+    max-width: calc(#{$wide-width} + 16rem);
+  }
+}
+
+@media (max-width: 480px) {
+  header .site-title {
+    font-size: 1.4rem;
+    letter-spacing: 0.04em;
+  }
+}

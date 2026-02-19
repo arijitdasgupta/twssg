@@ -1,0 +1,33 @@
+---
+layout: base.njk
+---
+<button class="post-nav-toggle" id="post-nav-toggle" aria-label="Toggle navigation">&#9776;</button>
+<div class="post-nav-mobile" id="post-nav-mobile">
+  <h3>Posts</h3>
+  <ol>
+    {% for post in posts %}
+    <li><a href="#{{ post.slug }}">{{ post.title }}</a></li>
+    {% endfor %}
+  </ol>
+</div>
+<div class="index-layout">
+  <div class="post-list">
+    {% for post in posts %}
+    <article class="post-entry" id="{{ post.slug }}">
+      <h2><a href="{{ '/' + subpath + '/posts/' + post.slug + '/' }}">{{ post.title }}</a></h2>
+      <time datetime="{{ post.published_at }}">{{ post.published_at | dateDisplay }}</time>
+      <div class="post-entry-content">
+        {{ post.html | safe }}
+      </div>
+    </article>
+    {% endfor %}
+  </div>
+  <nav class="post-nav-desktop" id="post-nav-desktop">
+    <h3>Posts</h3>
+    <ol>
+      {% for post in posts %}
+      <li><a href="#{{ post.slug }}">{{ post.title }}</a></li>
+      {% endfor %}
+    </ol>
+  </nav>
+</div>

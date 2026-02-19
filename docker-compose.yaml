@@ -1,0 +1,19 @@
+services:
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "8080:80"
+    volumes:
+      - site-data:/usr/share/nginx/html:ro
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+
+  twssg:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - site-data:/app/dist
+      - ./config.yaml:/app/config.yaml:ro
+
+volumes:
+  site-data:

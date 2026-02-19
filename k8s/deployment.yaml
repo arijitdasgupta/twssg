@@ -1,0 +1,98 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: twssg
+  namespace: websites
+  labels:
+    app: twssg
+spec:
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: twssg
+  template:
+    metadata:
+      labels:
+        app: twssg
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9091"
+        prometheus.io/path: "/metrics"
+    spec:
+      securityContext:
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        runAsNonRoot: true
+      imagePullSecrets:
+        - name: registry-credentials
+      containers:
+        - name: twssg
+          image: twssg
+          ports:
+            - containerPort: 9091
+              name: metrics
+          env:
+            - name: TWSSG_CONFIG
+              valueFrom:
+                secretKeyRef:
+                  name: twssg-config
+                  key: config
+          volumeMounts:
+            - name: site-data
+              mountPath: /app/dist
+          resources:
+            limits:
+              memory: 256Mi
+            requests:
+              memory: 128Mi
+        - name: nginx
+          image: nginx:alpine
+          ports:
+            - containerPort: 8080
+              name: http
+          volumeMounts:
+            - name: site-data
+              mountPath: /usr/share/nginx/html
+              readOnly: true
+            - name: nginx-config
+              mountPath: /etc/nginx/nginx.conf
+              subPath: nginx.conf
+              readOnly: true
+            - name: nginx-cache
+              mountPath: /var/cache/nginx
+            - name: nginx-run
+              mountPath: /var/run
+          resources:
+            limits:
+              memory: 64Mi
+            requests:
+              memory: 32Mi
+      volumes:
+        - name: site-data
+          emptyDir: {}
+        - name: nginx-config
+          configMap:
+            name: twssg-nginx
+        - name: nginx-cache
+          emptyDir: {}
+        - name: nginx-run
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: twssg
+  namespace: websites
+spec:
+  selector:
+    app: twssg
+  ports:
+    - name: http
+      port: 80
+      targetPort: 8080

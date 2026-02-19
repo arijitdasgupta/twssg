@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% if title %}{{ title }} — {{ siteTitle }}{% else %}{{ siteTitle }}{% endif %}</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baskervville:ital,wght@0,400..700;1,400..700&display=swap">
+  <link rel="stylesheet" href="{{ '/' + subpath + '/css/style.css?v=' + buildTime }}">
+  {% if dev %}<script src="{{ '/' + subpath + '/_dev/reload.js?v=' + buildTime }}"></script>{% endif %}
+</head>
+<body>
+  <header>
+    <nav>
+      <a href="{{ '/' + subpath + '/' }}" class="site-title">{{ siteTitle }}</a>
+    </nav>
+  </header>
+  <main>
+    {{ content | safe }}
+  </main>
+  <div class="lightbox-overlay" id="lightbox">
+    <img src="" alt="">
+  </div>
+  <footer>
+    {% if copyright %}<p>&copy; {{ copyright }}</p>{% endif %}
+  </footer>
+<script>
+(function() {
+  var overlay = document.getElementById('lightbox');
+  var overlayImg = overlay.querySelector('img');
+  document.addEventListener('click', function(e) {
+    var img = e.target.closest('.post-content img, .post-entry-content img');
+    if (!img) return;
+    e.preventDefault();
+    overlayImg.src = img.src;
+    overlayImg.alt = img.alt;
+    overlay.classList.add('active');
+  });
+  overlay.addEventListener('click', function() {
+    overlay.classList.remove('active');
+    overlayImg.src = '';
+  });
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+      overlay.classList.remove('active');
+      overlayImg.src = '';
+    }
+  });
+})();
+
+(function() {
+  var toggle = document.getElementById('post-nav-toggle');
+  var mobileNav = document.getElementById('post-nav-mobile');
+  var desktopNav = document.getElementById('post-nav-desktop');
+  var entries = document.querySelectorAll('.post-entry');
+
+  if (toggle && mobileNav) {
+    toggle.addEventListener('click', function() {
+      mobileNav.classList.toggle('open');
+    });
+
+    document.addEventListener('click', function(e) {
+      if (mobileNav.classList.contains('open') && !e.target.closest('.post-nav-mobile') && !e.target.closest('.post-nav-toggle')) {
+        mobileNav.classList.remove('open');
+      }
+    });
+
+    mobileNav.addEventListener('click', function(e) {
+      if (e.target.tagName === 'A') {
+        mobileNav.classList.remove('open');
+      }
+    });
+  }
+
+  if (entries.length) {
+    var allLinks = [];
+    if (mobileNav) allLinks = allLinks.concat(Array.from(mobileNav.querySelectorAll('a')));
+    if (desktopNav) allLinks = allLinks.concat(Array.from(desktopNav.querySelectorAll('a')));
+
+    var observer = new IntersectionObserver(function(items) {
+      items.forEach(function(item) {
+        if (item.isIntersecting) {
+          allLinks.forEach(function(l) { l.classList.remove('active'); });
+          allLinks.forEach(function(l) {
+            if (l.getAttribute('href') === '#' + item.target.id) l.classList.add('active');
+          });
+        }
+      });
+    }, { rootMargin: '-10% 0px -80% 0px' });
+
+    entries.forEach(function(entry) { observer.observe(entry); });
+  }
+
+  if (desktopNav) {
+    var mql = window.matchMedia('(min-width: 1280px)');
+    var lastScroll = window.scrollY;
+    var topOffset = 0;
+    var active = false;
+
+    function clamp(val, min, max) {
+      return Math.max(min, Math.min(max, val));
+    }
+
+    function update() {
+      if (!active) return;
+      var navH = desktopNav.offsetHeight;
+      var winH = window.innerHeight;
+      var scroll = window.scrollY;
+      var delta = scroll - lastScroll;
+      lastScroll = scroll;
+
+      if (navH <= winH) {
+        desktopNav.style.top = '1.5rem';
+        return;
+      }
+
+      var maxTop = 24;
+      var minTop = -(navH - winH);
+      topOffset = clamp(topOffset - delta, minTop, maxTop);
+      desktopNav.style.top = topOffset + 'px';
+    }
+
+    function onMediaChange() {
+      if (mql.matches) {
+        active = true;
+        lastScroll = window.scrollY;
+        topOffset = 0;
+        update();
+      } else {
+        active = false;
+        desktopNav.style.top = '';
+      }
+    }
+
+    mql.addEventListener('change', onMediaChange);
+    window.addEventListener('scroll', update, { passive: true });
+    onMediaChange();
+  }
+})();
+</script>
+</body>
+</html>
