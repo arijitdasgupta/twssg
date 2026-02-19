@@ -15,6 +15,10 @@ const serverBlocks = config.sites
         root /usr/share/nginx/html;
         index index.html;
 
+        location = /${site.subpath} {
+            return 302 /${site.subpath}/;
+        }
+
         location /${site.subpath}/ {
             try_files $uri $uri/ $uri/index.html =404;
         }
