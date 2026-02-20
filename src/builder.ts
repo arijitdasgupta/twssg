@@ -27,6 +27,87 @@ permalink: /
 `;
 }
 
+function generateRootIndexHtml(sites: SiteConfig[]): string {
+  const siteLinks = sites
+    .map(
+      (site) => `
+      <a href="/${site.subpath}/" class="site-link">
+        <span class="site-title">${site.title}</span>
+      </a>`
+    )
+    .join("\n");
+
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Travel</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baskervville:ital,wght@0,400..700;1,400..700&display=swap">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    body {
+      font-family: "Georgia", "Times New Roman", "Times", serif;
+      background: #faf9f6;
+      color: #1a1a1a;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+    }
+    
+    h1 {
+      font-family: "Baskervville", "Georgia", "Times New Roman", "Times", serif;
+      font-size: 2.5rem;
+      font-weight: 400;
+      margin-bottom: 3rem;
+      text-align: center;
+    }
+    
+    .site-links {
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+      width: 100%;
+      max-width: 32rem;
+    }
+    
+    .site-link {
+      display: block;
+      padding: 1.5rem 2rem;
+      background: #fff;
+      border: 1px solid #d4d4d4;
+      border-left: 4px solid #8b0000;
+      text-decoration: none;
+      color: #1a1a1a;
+      transition: all 0.2s ease;
+    }
+    
+    .site-link:hover {
+      background: #f5f0e8;
+      border-left-width: 6px;
+      transform: translateX(4px);
+    }
+    
+    .site-link .site-title {
+      font-family: "Baskervville", "Georgia", "Times New Roman", "Times", serif;
+      font-size: 1.5rem;
+      font-weight: 400;
+    }
+  </style>
+</head>
+<body>
+  <nav class="site-links">
+${siteLinks}
+  </nav>
+</body>
+</html>
+`;
+}
+
 
 export async function buildSite(
   site: SiteConfig,
@@ -143,6 +224,7 @@ async function _buildSiteInner(
     configPath: null,
     pathPrefix: `/${site.subpath}/`,
     config(eleventyConfig: any) {
+      eleventyConfig.setUseGitIgnore(false);
       eleventyConfig.addPassthroughCopy({ css: "css" });
 
       eleventyConfig.addFilter("dateDisplay", (dateStr: string) => {
@@ -184,5 +266,11 @@ export async function buildAllSites(
   for (const site of appConfig.sites) {
     await buildSite(site, appConfig, dev);
   }
+
+  // Generate root index page with links to all sites
+  const rootIndexPath = join(resolve(appConfig.outputDir), "index.html");
+  writeFileSync(rootIndexPath, generateRootIndexHtml(appConfig.sites));
+  log.info("Generated root index", { path: rootIndexPath });
+
   log.info("All sites built");
 }

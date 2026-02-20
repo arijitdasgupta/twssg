@@ -1,3 +1,31 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: twssg-nginx
+  namespace: apps
+data:
+  nginx.conf: |
+    pid /var/run/nginx.pid;
+    events {
+      worker_connections 1024;
+    }
+    http {
+      include /etc/nginx/mime.types;
+      default_type application/octet-stream;
+      sendfile on;
+      tcp_nopush on;
+      gzip on;
+      gzip_types text/plain text/css application/json application/javascript text/xml image/svg+xml;
+      server {
+        listen 8080;
+        root /usr/share/nginx/html;
+        index index.html;
+        location / {
+          try_files $uri $uri/ $uri/index.html =404;
+        }
+      }
+    }
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:

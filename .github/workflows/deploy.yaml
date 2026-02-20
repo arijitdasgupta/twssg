@@ -31,12 +31,6 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      - name: Generate nginx ConfigMap
-        env:
-          TWSSG_CONFIG: ${{ secrets.TWSSG_CONFIG }}
-        run: |
-          npx bun run src/gen-nginx.ts > k8s/nginx-configmap.yaml
-
       - name: Update kustomization image tag
         run: |
           cd k8s
