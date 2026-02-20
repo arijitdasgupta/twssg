@@ -43,12 +43,12 @@ function generateRootIndexHtml(sites: SiteConfig[]): string {
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Travel</title>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baskervville:ital,wght@0,400..700;1,400..700&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baskervville:ital,wght@0,400..700;1,400..700&family=PT+Serif:ital,wght@0,400;0,700;1,400;1,700&display=swap">
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     
     body {
-      font-family: "Georgia", "Times New Roman", "Times", serif;
+      font-family: "PT Serif", serif;
       background: #faf9f6;
       color: #1a1a1a;
       min-height: 100vh;
