@@ -7,6 +7,7 @@ import { fetchPosts } from "./ghost";
 import { log } from "./log";
 import { metrics } from "./metrics";
 import { buildStart, buildEnd, isShuttingDown } from "./lifecycle";
+import { collectImageUrls, downloadImages, rewriteHtml, rewriteFeatureImage } from "./images";
 
 // Inject loading="lazy" into <img> tags so browsers defer offscreen images.
 // Ghost HTML is clean and predictable; browsers that don't support the
@@ -158,6 +159,18 @@ async function _buildSiteInner(
     const db = new Date(b.published_at || 0).getTime();
     return site.sortOrder === "asc" ? da - db : db - da;
   });
+
+  // Download images and build URL rewrite map
+  const imageUrls = collectImageUrls(posts);
+  const imageMap = await downloadImages(imageUrls, join(outputDir, "images"), site.subpath);
+
+  // Rewrite image URLs in posts to point to local copies
+  for (const post of posts) {
+    if (post.html) {
+      post.html = rewriteHtml(post.html, imageMap);
+    }
+    post.feature_image = rewriteFeatureImage(post.feature_image, imageMap);
+  }
 
   // Clean and prepare work directory
   if (existsSync(workDir)) {
