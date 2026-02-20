@@ -117,6 +117,10 @@ kind: Service
 metadata:
   name: twssg
   namespace: apps
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "9091"
+    prometheus.io/path: "/metrics"
 spec:
   selector:
     app: twssg
