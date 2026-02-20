@@ -4,6 +4,7 @@ kind: Kustomization
 resources:
   - deployment.yaml
   - nginx-configmap.yaml
+  - ingress.yaml
 
 images:
   - name: twssg

@@ -49,7 +49,7 @@ jobs:
         run: |
           mkdir -p ~/.kube
           echo "$KUBECONFIG_DATA" | base64 -d > ~/.kube/config
-          kubectl -n websites create secret generic twssg-config \
+          kubectl -n apps create secret generic twssg-config \
             --from-literal=config="$TWSSG_CONFIG" \
             --dry-run=client -o yaml | kubectl apply -f -
           kubectl apply -k k8s/

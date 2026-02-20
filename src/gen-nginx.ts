@@ -58,7 +58,7 @@ const configMap = {
   kind: "ConfigMap",
   metadata: {
     name: "twssg-nginx",
-    namespace: "websites",
+    namespace: "apps",
   },
   data: {
     "nginx.conf": nginxConf,
