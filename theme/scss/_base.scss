@@ -59,23 +59,9 @@ footer {
   text-transform: uppercase;
 }
 
-@media (min-width: $column-breakpoint) {
-  main {
-    max-width: $wide-width;
-  }
-
-  header nav {
-    max-width: $wide-width;
-  }
-
-  footer {
-    max-width: $wide-width;
-  }
-}
-
 @media (min-width: 1280px) {
   main {
-    max-width: calc(#{$wide-width} + 16rem);
+    max-width: calc(#{$column-width} + 16rem);
   }
 }
 

@@ -136,18 +136,3 @@
   }
 }
 
-@media (min-width: $column-breakpoint) {
-  .post-entry-content {
-    column-count: 2;
-    column-gap: 2.5rem;
-    column-rule: 1px solid $color-rule-light;
-
-    h2, h3, pre, blockquote {
-      column-span: all;
-    }
-
-    img, figure {
-      break-inside: avoid;
-    }
-  }
-}
