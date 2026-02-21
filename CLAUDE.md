@@ -10,7 +10,7 @@ Bun (not Node.js). Use `bun run`, `bun install`, `bun test`.
 
 ## Commands
 
-- `bun run start` — production mode: build all sites, keep rebuilding on schedule, metrics on :9091
+- `bun run start` — production mode: build all sites once, serve metrics on :9091 and `POST /rebuild` trigger
 - `bun run dev` — dev server with SSE hot reload on :3000
 - `bun run src/list-tags.ts` — list all Ghost tags per configured site
 - `bun run src/check-tags.ts` — find posts missing a specific tag
@@ -20,6 +20,7 @@ Bun (not Node.js). Use `bun run`, `bun install`, `bun test`.
 - Eleventy v3 used purely via programmatic API — no `.eleventy.js` on disk
 - SCSS compiled in builder via `sass.compile()`, CSS written directly to output dir
 - `.twssg-work/<subpath>/` is scratch space, wiped each build
+- Builder writes to staging dir (`dist/<subpath>.tmp/`), then atomically renames into place
 - `dist/<subpath>/` is final output
 - Theme in `theme/` is shared across all sites
 - `config.yaml` has real credentials — gitignored. `config.example.yaml` is committed.
@@ -31,14 +32,14 @@ Bun (not Node.js). Use `bun run`, `bun install`, `bun test`.
 - `$font-heading` for titles, `$font-serif` for body, `$font-sans` for UI elements
 - JSON structured logging (Loki-compatible) via `src/log.ts`
 - Hand-rolled Prometheus metrics via `src/metrics.ts`
-- Graceful shutdown with build draining via `src/lifecycle.ts`
+- Rebuilds triggered externally via `POST /rebuild` on the metrics server (K8s CronJob with `curlimages/curl`)
 - Images get `loading="lazy"` injected via string replace on Ghost HTML
 - Homepage has two separate nav components: desktop (sticky sidebar) and mobile (hamburger overlay)
 
 ## Config fields (per site)
 
 `title`, `subpath`, `ghostUrl`, `ghostApiKey` (required)
-`tag`, `updateFrequency`, `sortOrder`, `copyright`, `hostname` (optional)
+`tag`, `sortOrder`, `copyright`, `hostname` (optional)
 
 ## Testing
 

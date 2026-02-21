@@ -12,7 +12,7 @@ Every other tech savvy person wants to do _Gitops_, and CI/CD and whatnot, but I
 
 ### Uses [eleventy](https://www.11ty.dev/)
 
-Pulls stuff from Ghost Content API (for now), and builds a static files to serve. 95% vide coded. No custom theming support, yet. You need a [Ghost](https://github.com/TryGhost/Ghost) installation. Ghost is amazing, you should definitely consider it as your blogging backend (and frontend).
+Pulls stuff from Ghost Content API (for now), and builds static files to serve. 95% vibe coded. No custom theming support, yet. You need a [Ghost](https://github.com/TryGhost/Ghost) installation. Ghost is amazing, you should definitely consider it as your blogging backend (and frontend).
 
 Most of the deployments config, such as docker compose and kubernetes manifests, works with my own infrastructure. You would have to adapt it for your needs, or ask Claude, why bother doing it yourself. If anyone asks, I would be happy to write clear instructions on how to deploy and run for a more production-ish setting. But currently I am the only user of this, AFAIK.
 
@@ -37,7 +37,7 @@ Reliance on code editor, CI/CD & a whole set of configuration for blogging takes
 - No content / media server support.
 - Can generate multiple blogs with a single run.
 - If you are pairing it with Nginx or Traefik, you can serve multiple blogs on different subpaths and on different hostnames. If you need, ask me how. Or, Claude.
-- You can mount `/app/dist` to mount the static sites externally, but that's not how I intended to use it. I plan to use it as part of combo with a file server such as NGINX. This one being a running container that will query the content API and generate website files periodically.
+- You can mount `/app/dist` to mount the static sites externally, but that's not how I intended to use it. I plan to use it as part of combo with a file server such as NGINX. The builder runs once on startup and exposes a `/rebuild` HTTP endpoint for on-demand rebuilds (triggered by a Kubernetes CronJob or any HTTP client).
 
 ### Contributions?
 
@@ -61,7 +61,6 @@ sites:
     subpath: "blog"                      # served at /blog/
     ghostUrl: "https://ghost.example.com"
     ghostApiKey: "abc123..."
-    updateFrequency: "10m"               # 10s, 10m, 1h
     sortOrder: "desc"                    # "desc" (newest first) or "asc" (oldest first)
     copyright: "2025 Your Name"          # optional, shown in footer as © 2025 Your Name
 
@@ -70,7 +69,6 @@ sites:
     tag: "tech"                          # filter to posts with this tag
     ghostUrl: "https://ghost.example.com"
     ghostApiKey: "abc123..."
-    updateFrequency: "30m"
 ```
 
 | Field | Required | Default | Description |
@@ -80,7 +78,6 @@ sites:
 | `ghostUrl` | yes | — | Ghost instance URL |
 | `ghostApiKey` | yes | — | Ghost Content API key |
 | `tag` | no | all posts | Filter posts by Ghost tag |
-| `updateFrequency` | no | `10m` | Rebuild interval |
 | `sortOrder` | no | `desc` | Post sort order by publish date |
 | `copyright` | no | hidden | Footer copyright notice |
 | `hostname` | no | — | Nginx vhost server name for production |
@@ -104,7 +101,15 @@ kubectl -n websites create secret generic twssg-config \
 bun run start
 ```
 
-Builds all sites, then keeps rebuilding on each site's `updateFrequency`. Exposes Prometheus metrics on `:9091`. Pair with NGINX to serve `dist/`.
+Builds all sites once, then stays alive serving Prometheus metrics on `:9091` and a `POST /rebuild` endpoint for on-demand rebuilds. Pair with NGINX to serve `dist/`.
+
+In Kubernetes, a CronJob triggers rebuilds on schedule:
+
+```yaml
+# Example: rebuild every 20 minutes
+schedule: "*/20 * * * *"
+command: ["curl", "-sf", "-X", "POST", "http://twssg.apps.svc.cluster.local:9091/rebuild"]
+```
 
 ### Dev mode (hot reload)
 
@@ -114,7 +119,7 @@ bun run dev
 bun run src/cli.ts dev --port 4000
 ```
 
-Watches theme files and config for changes. Periodically re-fetches from Ghost on each site's `updateFrequency`.
+Watches theme files and config for changes, rebuilds automatically on any change.
 
 ### List tags
 

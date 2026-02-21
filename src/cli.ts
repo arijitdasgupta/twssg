@@ -1,9 +1,11 @@
 #!/usr/bin/env bun
 import { Command } from "commander";
 import { loadConfig } from "./config";
-import { runCron } from "./scheduler";
+import { buildAllSites } from "./builder";
 import { startDevServer } from "./dev-server";
+import { startMetricsServer } from "./metrics";
 import { installSignalHandlers } from "./lifecycle";
+import { log } from "./log";
 
 installSignalHandlers();
 
@@ -16,12 +18,21 @@ program
 
 program
   .command("start")
-  .description("Build all sites and keep rebuilding on schedule")
+  .description("Build all sites, then serve metrics and a /rebuild trigger")
   .option("-c, --config <path>", "Path to config file", "config.yaml")
   .option("-m, --metrics-port <number>", "Prometheus metrics port", "9091")
   .action(async (opts) => {
     const config = loadConfig(opts.config);
-    await runCron(config, parseInt(opts.metricsPort, 10));
+    const metricsPort = parseInt(opts.metricsPort, 10);
+
+    startMetricsServer(metricsPort, async () => {
+      log.info("Rebuild triggered via HTTP");
+      await buildAllSites(config);
+    });
+    log.info("Metrics server started", { port: metricsPort, endpoints: ["/metrics", "POST /rebuild"] });
+
+    await buildAllSites(config);
+    log.info("Initial build complete, waiting for rebuild triggers");
   });
 
 program

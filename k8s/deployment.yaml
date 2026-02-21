@@ -34,7 +34,7 @@ metadata:
   labels:
     app: twssg
 spec:
-  replicas: 2
+  replicas: 1
   strategy:
     type: RollingUpdate
     rollingUpdate:
@@ -141,3 +141,6 @@ spec:
     - name: http
       port: 80
       targetPort: 8080
+    - name: metrics
+      port: 9091
+      targetPort: 9091

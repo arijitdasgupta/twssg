@@ -163,16 +163,39 @@ export function serializeMetrics(): string {
   ].join("\n\n") + "\n";
 }
 
-export function startMetricsServer(port: number = 9091): void {
+export function startMetricsServer(port: number = 9091, onRebuild?: () => Promise<void>): void {
+  let rebuilding = false;
   Bun.serve({
     port,
     idleTimeout: 0,
-    fetch(req) {
+    async fetch(req) {
       const url = new URL(req.url);
       if (url.pathname === "/metrics") {
         return new Response(serializeMetrics(), {
           headers: { "Content-Type": "text/plain; version=0.0.4; charset=utf-8" },
         });
+      }
+      if (url.pathname === "/rebuild" && req.method === "POST" && onRebuild) {
+        if (rebuilding) {
+          return new Response(JSON.stringify({ status: "already_running" }), {
+            status: 409,
+            headers: { "Content-Type": "application/json" },
+          });
+        }
+        rebuilding = true;
+        try {
+          await onRebuild();
+          return new Response(JSON.stringify({ status: "ok" }), {
+            headers: { "Content-Type": "application/json" },
+          });
+        } catch (err: any) {
+          return new Response(JSON.stringify({ status: "error", error: err.message }), {
+            status: 500,
+            headers: { "Content-Type": "application/json" },
+          });
+        } finally {
+          rebuilding = false;
+        }
       }
       return new Response("Not Found", { status: 404 });
     },

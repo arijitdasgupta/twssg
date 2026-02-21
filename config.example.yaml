@@ -6,7 +6,6 @@ sites:
     subpath: "blog"
     ghostUrl: "https://your-ghost-instance.com"
     ghostApiKey: "your-content-api-key-here"
-    updateFrequency: "10m"
     sortOrder: "desc"         # "desc" (newest first) or "asc" (oldest first)
     copyright: "2025 Your Name"  # optional, shown in footer as © 2025 Your Name
     hostname: "blog.example.com"   # optional, used to generate nginx vhost config
@@ -16,6 +15,5 @@ sites:
     tag: "tech"
     ghostUrl: "https://your-ghost-instance.com"
     ghostApiKey: "your-content-api-key-here"
-    updateFrequency: "30m"
     sortOrder: "desc"
     hostname: "tech.example.com"

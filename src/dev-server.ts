@@ -2,8 +2,8 @@ import { watch } from "chokidar";
 import { readFileSync, existsSync, statSync } from "fs";
 import { join, resolve, extname } from "path";
 import type { AppConfig } from "./config";
-import { loadConfig, parseFrequencyMs } from "./config";
-import { buildSite, buildAllSites } from "./builder";
+import { loadConfig } from "./config";
+import { buildAllSites } from "./builder";
 import { log } from "./log";
 import { serializeMetrics } from "./metrics";
 import { onShutdown } from "./lifecycle";
@@ -38,8 +38,6 @@ export async function startDevServer(
   const outputDir = resolve(appConfig.outputDir);
   let clients: ReadableStreamDefaultController[] = [];
   let currentConfig = appConfig;
-  let refreshTimers: ReturnType<typeof setInterval>[] = [];
-
   function notifyClients() {
     for (const controller of clients) {
       try {
@@ -50,31 +48,8 @@ export async function startDevServer(
     }
   }
 
-  function setupRefreshTimers() {
-    for (const timer of refreshTimers) {
-      clearInterval(timer);
-    }
-    refreshTimers = [];
-
-    for (const site of currentConfig.sites) {
-      const intervalMs = parseFrequencyMs(site.updateFrequency);
-      log.info("Scheduling site refresh", { component: "dev", site: site.title, frequency: site.updateFrequency });
-      const timer = setInterval(async () => {
-        log.info("Refreshing site from Ghost", { component: "dev", site: site.title });
-        try {
-          await buildSite(site, currentConfig, true);
-          notifyClients();
-        } catch (err: any) {
-          log.error("Refresh failed", { component: "dev", site: site.title, error: err.message });
-        }
-      }, intervalMs);
-      refreshTimers.push(timer);
-    }
-  }
-
   // Initial build
   await buildAllSites(currentConfig, true);
-  setupRefreshTimers();
 
   // Watch theme directory for changes and rebuild
   const themeWatcher = watch(resolve("theme"), {
@@ -97,17 +72,18 @@ export async function startDevServer(
     try {
       currentConfig = loadConfig(configPath);
       await buildAllSites(currentConfig, true);
-      setupRefreshTimers();
       notifyClients();
     } catch (err: any) {
       log.error("Invalid config", { component: "dev", error: err.message });
     }
   });
 
+  let rebuilding = false;
+
   const server = Bun.serve({
     port,
     idleTimeout: 0,
-    fetch(req) {
+    async fetch(req) {
       const url = new URL(req.url);
       let pathname = url.pathname;
 
@@ -116,6 +92,32 @@ export async function startDevServer(
         return new Response(serializeMetrics(), {
           headers: { "Content-Type": "text/plain; version=0.0.4; charset=utf-8" },
         });
+      }
+
+      // Rebuild trigger
+      if (pathname === "/rebuild" && req.method === "POST") {
+        if (rebuilding) {
+          return new Response(JSON.stringify({ status: "already_running" }), {
+            status: 409,
+            headers: { "Content-Type": "application/json" },
+          });
+        }
+        rebuilding = true;
+        try {
+          log.info("Rebuild triggered via HTTP", { component: "dev" });
+          await buildAllSites(currentConfig, true);
+          notifyClients();
+          return new Response(JSON.stringify({ status: "ok" }), {
+            headers: { "Content-Type": "application/json" },
+          });
+        } catch (err: any) {
+          return new Response(JSON.stringify({ status: "error", error: err.message }), {
+            status: 500,
+            headers: { "Content-Type": "application/json" },
+          });
+        } finally {
+          rebuilding = false;
+        }
       }
 
       // SSE endpoint for hot reload
@@ -181,9 +183,6 @@ export async function startDevServer(
 
   onShutdown(() => {
     log.info("Stopping dev server", { component: "dev" });
-    for (const timer of refreshTimers) {
-      clearInterval(timer);
-    }
     themeWatcher.close();
     configWatcher.close();
     server.stop();
