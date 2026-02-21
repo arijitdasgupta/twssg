@@ -50,3 +50,7 @@ Dev server: `bun run dev` watches theme/ and config for live reload.
 - Newspaper aesthetic: narrow column (32rem), twin columns at ≥960px
 - Desktop nav sidebar at ≥1280px, main widens to 64rem + 16rem nav
 - No external logging/metrics libraries — keep it lightweight
+
+## Environment
+
+- `KUBECONFIG=~/.kube/config2` — always use this kubeconfig for kubectl/helm commands
