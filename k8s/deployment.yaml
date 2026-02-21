@@ -84,6 +84,19 @@ spec:
           ports:
             - containerPort: 8080
               name: http
+          startupProbe:
+            httpGet:
+              path: /index.html
+              port: 8080
+            initialDelaySeconds: 1
+            periodSeconds: 2
+            failureThreshold: 30
+          readinessProbe:
+            httpGet:
+              path: /index.html
+              port: 8080
+            periodSeconds: 10
+            failureThreshold: 3
           volumeMounts:
             - name: site-data
               mountPath: /usr/share/nginx/html

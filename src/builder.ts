@@ -1,4 +1,4 @@
-import { mkdirSync, writeFileSync, cpSync, existsSync, rmSync } from "fs";
+import { mkdirSync, writeFileSync, cpSync, existsSync, rmSync, renameSync } from "fs";
 import { join, resolve } from "path";
 import * as sass from "sass";
 import Eleventy from "@11ty/eleventy";
@@ -133,7 +133,9 @@ async function _buildSiteInner(
   dev: boolean
 ): Promise<void> {
   const workDir = join(resolve(".twssg-work"), site.subpath);
-  const outputDir = join(resolve(appConfig.outputDir), site.subpath);
+  const finalOutputDir = join(resolve(appConfig.outputDir), site.subpath);
+  const stagingDir = finalOutputDir + ".tmp";
+  const outputDir = stagingDir;
 
   const siteLabels = { site: site.title, subpath: site.subpath };
   const buildStart = performance.now();
@@ -168,6 +170,11 @@ async function _buildSiteInner(
   cpSync(resolve("theme/_includes"), join(workDir, "_includes"), {
     recursive: true,
   });
+
+  if (existsSync(stagingDir)) {
+    rmSync(stagingDir, { recursive: true });
+  }
+  ensureDir(stagingDir);
 
   ensureDir(join(workDir, "css"));
   ensureDir(join(outputDir, "css"));
@@ -246,15 +253,31 @@ async function _buildSiteInner(
 
   try {
     await elev.write();
+
+    const oldDir = finalOutputDir + ".old";
+    if (existsSync(oldDir)) {
+      rmSync(oldDir, { recursive: true });
+    }
+    if (existsSync(finalOutputDir)) {
+      renameSync(finalOutputDir, oldDir);
+    }
+    renameSync(stagingDir, finalOutputDir);
+    if (existsSync(oldDir)) {
+      rmSync(oldDir, { recursive: true });
+    }
+
     const buildDuration = (performance.now() - buildStart) / 1000;
     metrics.buildDuration.observe(siteLabels, buildDuration);
     metrics.buildTotal.inc(siteLabels);
     metrics.lastBuildTimestamp.set(siteLabels, Date.now() / 1000);
-    log.info("Build complete", { site: site.title, outputDir, buildSeconds: buildDuration });
+    log.info("Build complete", { site: site.title, outputDir: finalOutputDir, buildSeconds: buildDuration });
   } catch (err: any) {
     metrics.buildErrors.inc(siteLabels);
     metrics.buildTotal.inc(siteLabels);
     log.error("Eleventy build failed", { site: site.title, error: err.message });
+    if (existsSync(stagingDir)) {
+      rmSync(stagingDir, { recursive: true });
+    }
   }
 }
 
@@ -268,8 +291,11 @@ export async function buildAllSites(
   }
 
   // Generate root index page with links to all sites
-  const rootIndexPath = join(resolve(appConfig.outputDir), "index.html");
-  writeFileSync(rootIndexPath, generateRootIndexHtml(appConfig.sites));
+  const rootDir = resolve(appConfig.outputDir);
+  const rootIndexTmp = join(rootDir, ".index.html.tmp");
+  const rootIndexPath = join(rootDir, "index.html");
+  writeFileSync(rootIndexTmp, generateRootIndexHtml(appConfig.sites));
+  renameSync(rootIndexTmp, rootIndexPath);
   log.info("Generated root index", { path: rootIndexPath });
 
   log.info("All sites built");
