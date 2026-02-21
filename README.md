@@ -153,6 +153,17 @@ docker run -p 8080:80 twssg
 
 The Content API key is read-only and only exposes published content — it cannot modify your site.
 
+### TODO
+
+Things to figure out when scaling beyond a single replica:
+
+- **Broadcast rebuild triggers** — currently `POST /rebuild` hits one pod via the Service. With multiple replicas, we'd need to fan out the trigger to all pods. Options: headless Service + iterate over pod IPs, a shared message bus (Redis pub/sub, NATS), or a sidecar that subscribes to rebuild events.
+- **Shared storage** — each pod has its own `emptyDir`, so replicas serve independently built copies. A `ReadWriteMany` PVC (NFS, CephFS, Longhorn RWX) would let one builder write and all nginx instances read from the same volume. Hetzner Cloud Volumes only support `ReadWriteOnce`, so this needs a different storage backend or an NFS server pod.
+- **Incremental builds** — currently every rebuild re-fetches all posts and regenerates the full site. With hundreds of posts this could be optimized: store a build manifest with post slugs + checksums, diff against Ghost, and only regenerate changed/new posts. Eleventy's programmatic API doesn't natively support partial builds, so this would require managing the output directory ourselves.
+- **Webhook-driven rebuilds** — instead of polling on a cron schedule, Ghost can send webhooks on post publish/update/delete. A small webhook receiver could replace the CronJob entirely, giving near-instant updates.
+- **Multi-region / CDN push** — for global distribution, the builder could push the generated files to S3/R2/MinIO and serve via a CDN instead of from local disk. This also solves the shared storage problem.
+- **Health-based cron backoff** — if Ghost is down, the CronJob still fires and the builder logs fetch errors. Could add smarter scheduling: exponential backoff on repeated failures, alerting via the metrics endpoint.
+
 ### Afterthoughts
 
 - Wanted to call the project Ghostpress, but it was too late and too specific.
